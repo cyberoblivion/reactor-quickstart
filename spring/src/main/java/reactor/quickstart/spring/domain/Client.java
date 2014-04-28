@@ -1,4 +1,4 @@
-package reactor.quickstart.complex.domain;
+package reactor.quickstart.spring.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

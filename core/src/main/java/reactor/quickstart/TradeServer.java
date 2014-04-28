@@ -25,22 +25,22 @@ public class TradeServer {
 	}
 
 	private final AtomicLong           counter    = new AtomicLong();
-	private final Thread               queueDrain = new Thread() {
-		@Override
-		public void run() {
-			while (active.get()) {
-				try {
-					// Pull Orders off the queue and process them
-					buys.poll(100, TimeUnit.MILLISECONDS);
-					sells.poll(100, TimeUnit.MILLISECONDS);
-				} catch (InterruptedException e) {
+	private final BlockingQueue<Order> buys       = new LinkedTransferQueue<Order>();
+	private final BlockingQueue<Order> sells      = new LinkedTransferQueue<Order>();
+	private final AtomicBoolean        active     = new AtomicBoolean(true);
+	private final Thread               queueDrain = new Thread(
+			() -> {
+				while (active.get()) {
+					try {
+						// Pull Orders off the queue and process them
+						buys.poll(100, TimeUnit.MILLISECONDS);
+						sells.poll(100, TimeUnit.MILLISECONDS);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				}
 			}
-		}
-	};
-	final         BlockingQueue<Order> buys       = new LinkedTransferQueue<Order>();
-	final         BlockingQueue<Order> sells      = new LinkedTransferQueue<Order>();
-	final         AtomicBoolean        active     = new AtomicBoolean(true);
+	);
 
 	public TradeServer() {
 		queueDrain.start();

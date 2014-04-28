@@ -1,14 +1,5 @@
 package reactor.quickstart;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.servlet.http.HttpServlet;
-
 import org.eclipse.jetty.io.MappedByteBufferPool;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -18,124 +9,109 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.UpgradeRequest;
-import org.eclipse.jetty.websocket.api.UpgradeResponse;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import reactor.core.Environment;
 import reactor.core.Reactor;
 import reactor.core.spec.Reactors;
 import reactor.event.Event;
 import reactor.event.selector.Selector;
 import reactor.event.selector.Selectors;
-import reactor.function.Consumer;
+
+import javax.servlet.http.HttpServlet;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Jon Brisbin
  */
 public class WebSocketTradeServerExample {
 
-	private static final Logger LOG = LoggerFactory.getLogger(WebSocketTradeServerExample.class);
+	private static final Logger LOG         = LoggerFactory.getLogger(WebSocketTradeServerExample.class);
+	private static       int    totalTrades = 10000000;
 	private static CountDownLatch latch;
-	private static int totalTrades = 10000000;
-	private static long   startTime;
-	private static long   endTime;
-	private static double elapsed;
-	private static double throughput;
+	private static long           startTime;
 
 	public static void main(String[] args) throws Exception {
 		Environment env = new Environment();
 		final TradeServer server = new TradeServer();
 
 		// Use a Reactor to dispatch events using the high-speed Dispatcher
-		final Reactor serverReactor = Reactors.reactor()
-																	 .env(env)
-																	 .dispatcher(Environment.RING_BUFFER)
-																	 .get();
+		final Reactor serverReactor = Reactors.reactor(env);
 
 		// Create a single key and Selector for efficiency
-		final String tradeExecuteKey = "trade.execute";
-		final Selector tradeExecute = Selectors.object(tradeExecuteKey);
+		final Selector tradeExecute = Selectors.object("trade.execute");
 
 		// For each Trade event, execute that on the server and notify connected clients
 		// because each client that connects links to the serverReactor
-		serverReactor.on(tradeExecute, new Consumer<Event<Trade>>() {
-			@Override
-			public void accept(Event<Trade> tradeEvent) {
-				server.execute(tradeEvent.getData());
+		serverReactor.on(tradeExecute, (Event<Trade> ev) -> {
+			server.execute(ev.getData());
 
-				// Since we're async, for this test, use a latch to tell when we're done
-				latch.countDown();
-			}
+			// Since we're async, for this test, use a latch to tell when we're done
+			latch.countDown();
 		});
 
 		@SuppressWarnings("serial")
 		WebSocketServlet wss = new WebSocketServlet() {
 			@Override
 			public void configure(WebSocketServletFactory factory) {
-				factory.setCreator(new WebSocketCreator() {
+				factory.setCreator((req, resp) -> new WebSocketListener() {
+					AtomicLong counter = new AtomicLong();
+
 					@Override
-					public Object createWebSocket(UpgradeRequest req, UpgradeResponse resp) {
-						return new WebSocketListener() {
-							AtomicLong counter = new AtomicLong();
+					public void onWebSocketBinary(byte[] payload, int offset, int len) {
+					}
 
-							@Override
-							public void onWebSocketBinary(byte[] payload, int offset, int len) {
-							}
+					@Override
+					public void onWebSocketClose(int statusCode, String reason) {
+					}
 
-							@Override
-							public void onWebSocketClose(int statusCode, String reason) {
-							}
+					@Override
+					public void onWebSocketConnect(final Session session) {
+						LOG.info("Connected a websocket client: {}", session);
 
-							@Override
-							public void onWebSocketConnect(final Session session) {
-								LOG.info("Connected a websocket client: {}", session);
+						// Keep track of a rolling average
+						final AtomicReference<Float> avg = new AtomicReference<>(0f);
 
-								// Keep track of a rolling average
-								final AtomicReference<Float> avg = new AtomicReference<>(0f);
+						serverReactor.on(tradeExecute, (Event<Trade> ev) -> {
+							Trade t = ev.getData();
+							avg.set((avg.get() + t.getPrice()) / 2);
 
-								serverReactor.on(tradeExecute, new Consumer<Event<Trade>>() {
-									@Override
-									public void accept(Event<Trade> tradeEvent) {
-										Trade t = tradeEvent.getData();
-										avg.set((avg.get() + t.getPrice()) / 2);
-
-										// Send a message every 1000th trade.
-										// Otherwise, we completely overwhelm the browser and network.
-										if (counter.incrementAndGet() % 1000 == 0) {
-											try {
-												session.getRemote().sendString(String.format("avg: %s", avg.get()));
-											} catch (IOException e) {
-												if (!"Failed to write bytes".equals(e.getMessage())) {
-													e.printStackTrace();
-												}
-											}
-										}
+							// Send a message every 1000th trade.
+							// Otherwise, we completely overwhelm the browser and network.
+							if (counter.incrementAndGet() % 1000 == 0) {
+								try {
+									session.getRemote().sendString(String.format("avg: %s", avg.get()));
+								} catch (IOException e) {
+									if (!"Failed to write bytes".equals(e.getMessage())) {
+										e.printStackTrace();
 									}
-								});
+								}
 							}
+						});
+					}
 
-							@Override
-							public void onWebSocketError(Throwable cause) {
-							}
+					@Override
+					public void onWebSocketError(Throwable cause) {
+					}
 
-							@Override
-							public void onWebSocketText(String message) {
-							}
-						};
+					@Override
+					public void onWebSocketText(String message) {
 					}
 				});
 			}
 		};
 		serve(wss);
 
-		LOG.info("Connect websocket clients now (waiting for 20 seconds).\n"
-								 + "Open websocket/src/main/webapp/ws.html in a browser...");
+		LOG.info("Connect websocket clients now (waiting for 10 seconds).\n"
+				         + "Open websocket/src/main/webapp/ws.html in a browser...");
 		Thread.sleep(10000);
 
 		// Start a throughput timer
@@ -147,7 +123,7 @@ public class WebSocketTradeServerExample {
 			Trade t = server.nextTrade();
 
 			// Notify the Reactor the event is ready to be handled
-			serverReactor.notify(tradeExecuteKey, Event.wrap(t));
+			serverReactor.notify(tradeExecute.getObject(), Event.wrap(t));
 		}
 
 		// Stop throughput timer and output metrics
@@ -165,9 +141,9 @@ public class WebSocketTradeServerExample {
 
 	private static void endTimer() throws InterruptedException {
 		latch.await(30, TimeUnit.SECONDS);
-		endTime = System.currentTimeMillis();
-		elapsed = (endTime - startTime) * 1.0;
-		throughput = totalTrades / (elapsed / 1000);
+		long endTime = System.currentTimeMillis();
+		double elapsed = endTime - startTime;
+		double throughput = totalTrades / (elapsed / 1000);
 
 		LOG.info("Executed {} trades/sec in {}ms", (int) throughput, (int) elapsed);
 	}

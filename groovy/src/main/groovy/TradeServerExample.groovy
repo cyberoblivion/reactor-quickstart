@@ -1,8 +1,6 @@
 /**
  * @author Stephane Maldini
  */
-
-
 import reactor.event.selector.Selectors
 import groovy.transform.CompileStatic
 
@@ -41,7 +39,7 @@ void test() {
 	def server = new TradeServer()
 
 	// Use a Reactor to dispatch events using the RingBuffer Dispatcher
-	def reactor = Reactors.reactor().env(env).dispatcher(Environment.RING_BUFFER).get()
+	def reactor = Reactors.reactor(env)
 
 	def topic = 'trade.execute'
 
