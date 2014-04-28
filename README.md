@@ -21,6 +21,7 @@ The components include:
 * composable - example of using a Composable to wire components together
 * groovy - example of using the Groovy helpers to make writing Consumers easier
 * websocket - example of using the Jetty WebSocket API to write websocket-based Reactor applications
+* spring - example of using Spring Boot to tie a `@RestController` to a `Reactor`
 
 ### License
 
