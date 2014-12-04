@@ -1,16 +1,16 @@
 /**
  * @author Stephane Maldini
  */
-import reactor.event.selector.Selectors
+
 import groovy.transform.CompileStatic
+import reactor.core.Environment
+import reactor.event.EventBus
+import reactor.event.selector.Selectors
+import reactor.quickstart.Trade
+import reactor.quickstart.TradeServer
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-
-import reactor.core.Environment
-import reactor.core.spec.Reactors
-import reactor.quickstart.Trade
-import reactor.quickstart.TradeServer
 
 @CompileStatic
 void test() {
@@ -39,7 +39,7 @@ void test() {
 	def server = new TradeServer()
 
 	// Use a Reactor to dispatch events using the RingBuffer Dispatcher
-	def reactor = Reactors.reactor(env)
+	def reactor = EventBus.create(env)
 
 	def topic = 'trade.execute'
 

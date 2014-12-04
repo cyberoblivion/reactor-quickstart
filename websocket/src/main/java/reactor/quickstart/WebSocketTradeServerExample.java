@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Environment;
 import reactor.core.Reactor;
-import reactor.core.spec.Reactors;
 import reactor.event.Event;
+import reactor.event.EventBus;
 import reactor.event.selector.Selector;
 import reactor.event.selector.Selectors;
 
@@ -44,7 +44,7 @@ public class WebSocketTradeServerExample {
 		final TradeServer server = new TradeServer();
 
 		// Use a Reactor to dispatch events using the high-speed Dispatcher
-		final Reactor serverReactor = Reactors.reactor(env);
+		final Reactor serverReactor = EventBus.create(env);
 
 		// Create a single key and Selector for efficiency
 		final Selector tradeExecute = Selectors.object("trade.execute");
