@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.Environment;
-import reactor.core.Reactor;
 import reactor.event.Event;
 import reactor.event.EventBus;
 import reactor.quickstart.Trade;

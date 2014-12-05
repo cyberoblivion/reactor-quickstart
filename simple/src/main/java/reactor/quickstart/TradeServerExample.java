@@ -3,7 +3,6 @@ package reactor.quickstart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Environment;
-import reactor.core.Reactor;
 import reactor.event.Event;
 import reactor.event.EventBus;
 
