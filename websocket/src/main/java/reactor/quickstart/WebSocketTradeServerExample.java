@@ -15,10 +15,10 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.Environment;
-import reactor.event.Event;
-import reactor.event.EventBus;
-import reactor.event.selector.Selector;
-import reactor.event.selector.Selectors;
+import reactor.bus.Event;
+import reactor.bus.EventBus;
+import reactor.bus.selector.Selector;
+import reactor.bus.selector.Selectors;
 
 import javax.servlet.http.HttpServlet;
 import java.io.IOException;

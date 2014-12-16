@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import reactor.Environment;
-import reactor.event.Event;
-import reactor.event.EventBus;
+import reactor.bus.Event;
+import reactor.bus.EventBus;
 import reactor.quickstart.Trade;
 import reactor.quickstart.TradeServer;
 import reactor.spring.context.config.EnableReactor;
 
-import static reactor.event.selector.Selectors.$;
+import static reactor.bus.selector.Selectors.$;
 
 /**
  * @author Jon Brisbin

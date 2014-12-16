@@ -4,8 +4,8 @@
 
 import groovy.transform.CompileStatic
 import reactor.Environment
-import reactor.event.EventBus
-import reactor.event.selector.Selectors
+import reactor.bus.EventBus
+import reactor.bus.selector.Selectors
 import reactor.quickstart.Trade
 import reactor.quickstart.TradeServer
 

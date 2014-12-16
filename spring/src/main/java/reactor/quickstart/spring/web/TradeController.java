@@ -2,7 +2,7 @@ package reactor.quickstart.spring.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import reactor.event.Event;
+import reactor.bus.Event;
 import reactor.quickstart.TradeServer;
 import reactor.quickstart.spring.domain.Client;
 import reactor.quickstart.spring.repository.ClientRepository;
