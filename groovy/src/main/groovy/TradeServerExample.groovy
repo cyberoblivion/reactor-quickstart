@@ -3,7 +3,7 @@
  */
 
 import groovy.transform.CompileStatic
-import reactor.core.Environment
+import reactor.Environment
 import reactor.event.EventBus
 import reactor.event.selector.Selectors
 import reactor.quickstart.Trade

@@ -14,7 +14,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.Environment;
+import reactor.Environment;
 import reactor.event.Event;
 import reactor.event.EventBus;
 import reactor.event.selector.Selector;
