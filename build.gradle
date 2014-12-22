@@ -64,7 +64,7 @@ allprojects {
 		exclude module: 'junit'
 	}
 
-	group = 'org.projectreactor.quickstart'
+	group = 'io.projectreactor.quickstart'
 	repositories {
 		//mavenLocal()
 		maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
@@ -89,7 +89,7 @@ subprojects { subproject ->
 		runtime "ch.qos.logback:logback-classic:$logbackVersion"
 
 		// Reactor
-		compile "org.projectreactor.spring:reactor-spring-context:$reactorVersion"
+		compile "io.projectreactor.spring:reactor-spring-context:$reactorVersion"
 
 		// Testing
 		testCompile 'junit:junit-dep:4.11',
@@ -128,7 +128,7 @@ project('groovy') {
 
 		// Groovy
 		compile "org.codehaus.groovy:groovy-all:$groovyVersion",
-				"org.projectreactor:reactor-groovy:$reactorVersion"
+				"io.projectreactor:reactor-groovy:$reactorVersion"
 	}
 }
 
