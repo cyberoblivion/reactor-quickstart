@@ -28,6 +28,7 @@ configure(subprojects) { subproject ->
 		}
 	}
 }
+
 def customizePom(def pom, def gradleProject) {
 	pom.whenConfigured { generatedPom ->
 		// eliminate test-scoped dependencies (no need in maven central poms)
@@ -65,12 +66,12 @@ def customizePom(def pom, def gradleProject) {
 				developer {
 					id = 'smaldini'
 					name = 'Stephane Maldini'
-					email = 'smaldini@gopivotal.com'
+					email = 'smaldini@pivotal.io'
 				}
 				developer {
 					id = 'jbrisbin'
 					name = 'Jon Brisbin'
-					email = 'jbrisbin@gopivotal.com'
+					email = 'jbrisbin@pivotal.io'
 				}
 			}
 			issueManagement {

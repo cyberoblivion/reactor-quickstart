@@ -3,9 +3,7 @@ package reactor.quickstart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.Environment;
-import reactor.core.composable.Deferred;
-import reactor.core.composable.Stream;
-import reactor.core.composable.spec.Streams;
+import reactor.rx.broadcast.Broadcaster;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -22,27 +20,27 @@ public class StreamTradeServerExample {
 	private static long startTime;
 
 	public static void main(String[] args) throws InterruptedException {
-		Environment env = new Environment();
+		Environment.initialize();
+
 		final TradeServer server = new TradeServer();
 		final CountDownLatch latch = new CountDownLatch(totalTrades);
 
 		// Rather than handling Trades as events, each Trade is accessible via Stream.
-		Deferred<Trade, Stream<Trade>> trades = Streams.defer(env);
+		Broadcaster<Trade> trades = Broadcaster.create(Environment.get());
 
 		// We compose an action to turn a Trade into an Order by calling server.execute(Trade).
-		Stream<Order> orders = trades.compose()
-		                             .map(server::execute)
-		                             .consume(o -> latch.countDown());
+		trades.map(server::execute)
+		      .consume(o -> latch.countDown());
 
 		// Start a throughput timer.
 		startTimer();
 
 		// Publish one event per trade.
 		for (int i = 0; i < totalTrades; i++) {
-			// Pull next randomly-generated Trade from server into the Composable,
+			// Pull next randomly-generated Trade from server into the Stream,
 			Trade trade = server.nextTrade();
-			// Notify the Composable this Trade is ready to be executed
-			trades.accept(trade);
+			// Notify the Stream this Trade is ready to be executed
+			trades.onNext(trade);
 		}
 
 		// Wait for all trades to pass through

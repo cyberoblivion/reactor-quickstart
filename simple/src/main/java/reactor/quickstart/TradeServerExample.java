@@ -27,12 +27,12 @@ public class TradeServerExample {
 		final TradeServer server = new TradeServer();
 
 		// Use a Reactor to dispatch events using the default Dispatcher
-		Reactor reactor = EventBus.create(env);
+		EventBus bus = EventBus.create(env);
 
 		String topic = "trade.execute";
 
 		// For each Trade event, execute that on the server
-		reactor.on($(topic), (Event<Trade> ev) -> {
+		bus.<Event<Trade>>on($(topic), ev -> {
 			server.execute(ev.getData());
 
 			// Since we're async, for this test, use a latch to tell when we're done
@@ -48,7 +48,7 @@ public class TradeServerExample {
 			Trade t = server.nextTrade();
 
 			// Notify the Reactor the event is ready to be handled
-			reactor.notify(topic, Event.wrap(t));
+			bus.notify(topic, Event.wrap(t));
 		}
 
 		// Stop throughput timer and output metrics

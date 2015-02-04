@@ -14,11 +14,6 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.Environment;
-import reactor.bus.Event;
-import reactor.bus.EventBus;
-import reactor.bus.selector.Selector;
-import reactor.bus.selector.Selectors;
 
 import javax.servlet.http.HttpServlet;
 import java.io.IOException;
@@ -39,7 +34,7 @@ public class WebSocketTradeServerExample {
 	private static long           startTime;
 
 	public static void main(String[] args) throws Exception {
-		Environment env = new Environment();
+		Environment
 		final TradeServer server = new TradeServer();
 
 		// Use a Reactor to dispatch events using the high-speed Dispatcher

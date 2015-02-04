@@ -31,17 +31,17 @@ public class SpringTradeServerExample {
 	}
 
 	@Bean
-	public Reactor reactor(Environment env, TradeServer tradeServer) {
+	public EventBus reactor(Environment env, TradeServer tradeServer) {
 		Logger log = LoggerFactory.getLogger("trade.server");
-		Reactor r = EventBus.create(env);
+		EventBus ev = EventBus.create(env);
 
 		// Wire an event handler to execute trades
-		r.on($("trade.execute"), (Event<Trade> ev) -> {
-			tradeServer.execute(ev.getData());
-			log.info("Executed trade: {}", ev.getData());
+		ev.on($("trade.execute"), (Event<Trade> e) -> {
+			tradeServer.execute(e.getData());
+			log.info("Executed trade: {}", e.getData());
 		});
 
-		return r;
+		return ev;
 	}
 
 	public static void main(String... args) {

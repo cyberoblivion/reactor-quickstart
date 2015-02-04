@@ -3,6 +3,7 @@ package reactor.quickstart.spring.web;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.bus.Event;
+import reactor.bus.EventBus;
 import reactor.quickstart.TradeServer;
 import reactor.quickstart.spring.domain.Client;
 import reactor.quickstart.spring.repository.ClientRepository;
@@ -14,15 +15,15 @@ import reactor.quickstart.spring.repository.ClientRepository;
 public class TradeController {
 
 	private final ClientRepository clients;
-	private final Reactor          reactor;
+	private final EventBus         eventBus;
 	private final TradeServer      tradeServer;
 
 	@Autowired
 	public TradeController(ClientRepository clients,
-	                       Reactor reactor,
+	                       EventBus eventBus,
 	                       TradeServer tradeServer) {
 		this.clients = clients;
-		this.reactor = reactor;
+		this.eventBus = eventBus;
 		this.tradeServer = tradeServer;
 	}
 
@@ -41,7 +42,7 @@ public class TradeController {
 			throw new IllegalArgumentException("No Client found for id " + clientId);
 		}
 
-		reactor.notify("trade.execute", Event.wrap(tradeServer.nextTrade()));
+		eventBus.notify("trade.execute", Event.wrap(tradeServer.nextTrade()));
 
 		// Update trade count
 		cl = clients.save(cl.setTradeCount(cl.getTradeCount() + 1));
