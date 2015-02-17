@@ -35,7 +35,7 @@ ext {
   jettyVersion = '9.1.4.v20140401'
 
   // Reactor
-  reactorVersion = '2.0.0.BUILD-SNAPSHOT'
+  reactorVersion = '2.0.0.RC1'
 
   // Hibernate
   hibernateVersion = '4.3.8.Final'
