@@ -5,6 +5,7 @@
 import groovy.transform.CompileStatic
 import reactor.Environment
 import reactor.bus.EventBus
+import reactor.bus.Event;
 import reactor.bus.selector.Selectors
 import reactor.quickstart.Trade
 import reactor.quickstart.TradeServer
@@ -44,8 +45,8 @@ void test() {
 	def topic = 'trade.execute'
 
 	// For each Trade event, execute that on the server
-	reactor.on(Selectors.object(topic)) { Trade trade ->
-		server.execute trade
+	reactor.on(Selectors.object(topic)) { Event<Trade> ev ->
+		server.execute ev.getData()
 
 		// Since we're async, for this test, use a latch to tell when we're done
 		latch.countDown()
@@ -58,7 +59,7 @@ void test() {
 	for (int i in 0..totalTrades) {
 
 		// Notify the Reactor the next randomly-generated Trade from server is ready to be handled
-		reactor.notify topic, server.nextTrade()
+		reactor.notify topic, Event.wrap(server.nextTrade())
 	}
 
 	// Stop throughput timer and output metrics
