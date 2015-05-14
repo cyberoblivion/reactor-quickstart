@@ -70,6 +70,7 @@ public class WebSocketTradeServerExample {
 
 					@Override
 					public void onWebSocketClose(int statusCode, String reason) {
+						LOG.info("Disconnected a websocket client: {}", statusCode);
 					}
 
 					@Override
@@ -99,6 +100,7 @@ public class WebSocketTradeServerExample {
 
 					@Override
 					public void onWebSocketError(Throwable cause) {
+						LOG.error("Error with a websocket client", cause);
 					}
 
 					@Override
