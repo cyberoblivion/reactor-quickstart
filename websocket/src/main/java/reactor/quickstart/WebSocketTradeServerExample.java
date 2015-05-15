@@ -56,7 +56,8 @@ public class WebSocketTradeServerExample {
 											channel
 													.writeWith(s.
 															reduce(0f, (prev, trade) -> (trade.getPrice() + prev) / 2).
-															map(Object::toString))
+															map(Object::toString)
+													)
 													.log("after-write")
 							);
 				}).
