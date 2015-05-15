@@ -41,7 +41,7 @@ public class WebSocketTradeServerExample {
 			latch.countDown();
 		});
 
-		NetStreams.<String, String>httpServer(spec -> spec.codec(StandardCodecs.STRING_CODEC).listen(3000) ).
+		NetStreams.<String, String>httpServer(spec -> spec.codec(StandardCodecs.STRING_CODEC).listen(3000)).
 				ws("/", channel -> {
 					System.out.println("Connected a websocket client: " + channel.remoteAddress());
 
@@ -49,11 +49,8 @@ public class WebSocketTradeServerExample {
 							map(ev -> ev.getData()).
 							cast(Trade.class).
 							window(1000).
-							flatMap(s -> channel.writeWith( s.
-															reduce(0f, (prev, trade) -> (trade.getPrice() + prev) / 2).
-															map(Object::toString)
-													)
-													.log("after-write")
+							flatMap(s ->
+											channel.writeWith( s.reduce(0f, (prev, trade) -> (trade.getPrice() + prev) / 2).map(Object::toString) )
 							);
 				}).
 				start().
