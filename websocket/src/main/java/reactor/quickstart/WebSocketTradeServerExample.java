@@ -1,45 +1,29 @@
 package reactor.quickstart;
 
-import org.eclipse.jetty.io.MappedByteBufferPool;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketListener;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reactor.Environment;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.bus.selector.Selector;
 import reactor.bus.selector.Selectors;
+import reactor.io.codec.StandardCodecs;
+import reactor.io.net.NetStreams;
+import reactor.rx.Streams;
 
-import javax.servlet.http.HttpServlet;
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * @author Jon Brisbin
+ * @author Stephane Maldini
  */
 public class WebSocketTradeServerExample {
 
-	private static final Logger LOG         = LoggerFactory.getLogger(WebSocketTradeServerExample.class);
 	private static       int    totalTrades = 10000000;
 	private static CountDownLatch latch;
 	private static long           startTime;
 
 	public static void main(String[] args) throws Exception {
-		Environment env = new Environment();
+		Environment env = Environment.initializeIfEmpty();
+
 		final TradeServer server = new TradeServer();
 
 		// Use a Reactor to dispatch events using the high-speed Dispatcher
@@ -57,62 +41,30 @@ public class WebSocketTradeServerExample {
 			latch.countDown();
 		});
 
-		@SuppressWarnings("serial")
-		WebSocketServlet wss = new WebSocketServlet() {
-			@Override
-			public void configure(WebSocketServletFactory factory) {
-				factory.setCreator((req, resp) -> new WebSocketListener() {
-					AtomicLong counter = new AtomicLong();
+		NetStreams
+				.<String, String>httpServer(spec ->
+								spec.codec(StandardCodecs.STRING_CODEC).listen(3000)
+				).
+				ws("/", channel -> {
+					System.out.println("Connected a websocket client: " + channel.remoteAddress());
 
-					@Override
-					public void onWebSocketBinary(byte[] payload, int offset, int len) {
-					}
+					return Streams.wrap(serverReactor.on(tradeExecute)).
+							map(ev -> ev.getData()).
+							cast(Trade.class).
+							window(1000).
+							flatMap(s ->
+											channel
+													.writeWith(s.
+															reduce(0f, (prev, trade) -> (trade.getPrice() + prev) / 2).
+															map(Object::toString))
+													.log("after-write")
+							);
+				}).
+				start().
+				await();
 
-					@Override
-					public void onWebSocketClose(int statusCode, String reason) {
-						LOG.info("Disconnected a websocket client: {}", statusCode);
-					}
-
-					@Override
-					public void onWebSocketConnect(final Session session) {
-						LOG.info("Connected a websocket client: {}", session);
-
-						// Keep track of a rolling average
-						final AtomicReference<Float> avg = new AtomicReference<>(0f);
-
-						serverReactor.on(tradeExecute, (Event<Trade> ev) -> {
-							Trade t = ev.getData();
-							avg.set((avg.get() + t.getPrice()) / 2);
-
-							// Send a message every 1000th trade.
-							// Otherwise, we completely overwhelm the browser and network.
-							if (counter.incrementAndGet() % 1000 == 0) {
-								try {
-									session.getRemote().sendString(String.format("avg: %s", avg.get()));
-								} catch (IOException e) {
-									if (!"Failed to write bytes".equals(e.getMessage())) {
-										e.printStackTrace();
-									}
-								}
-							}
-						});
-					}
-
-					@Override
-					public void onWebSocketError(Throwable cause) {
-						LOG.error("Error with a websocket client", cause);
-					}
-
-					@Override
-					public void onWebSocketText(String message) {
-					}
-				});
-			}
-		};
-		serve(wss);
-
-		LOG.info("Connect websocket clients now (waiting for 10 seconds).\n"
-				         + "Open websocket/src/main/webapp/ws.html in a browser...");
+		System.out.println("Connect websocket clients now (waiting for 10 seconds).\n"
+				+ "Open websocket/src/main/webapp/ws.html in a browser...");
 		Thread.sleep(10000);
 
 		// Start a throughput timer
@@ -135,7 +87,7 @@ public class WebSocketTradeServerExample {
 	}
 
 	private static void startTimer() {
-		LOG.info("Starting throughput test with {} trades...", totalTrades);
+		System.out.println("Starting throughput test with " + totalTrades + " trades...");
 		latch = new CountDownLatch(totalTrades);
 		startTime = System.currentTimeMillis();
 	}
@@ -146,37 +98,7 @@ public class WebSocketTradeServerExample {
 		double elapsed = endTime - startTime;
 		double throughput = totalTrades / (elapsed / 1000);
 
-		LOG.info("Executed {} trades/sec in {}ms", (int) throughput, (int) elapsed);
-	}
-
-	private static void serve(HttpServlet servlet) throws Exception {
-		ServletHandler handler = new ServletHandler();
-		handler.addServletWithMapping(new ServletHolder(servlet), "/");
-
-		HttpConfiguration httpConfig = new HttpConfiguration();
-		httpConfig.setOutputBufferSize(32 * 1024);
-		httpConfig.setRequestHeaderSize(8 * 1024);
-		httpConfig.setResponseHeaderSize(8 * 1024);
-		httpConfig.setSendDateHeader(true);
-
-		HttpConnectionFactory connFac = new HttpConnectionFactory(httpConfig);
-
-		Server server = new Server(3000);
-
-		ServerConnector connector = new ServerConnector(
-				server,
-				Executors.newFixedThreadPool(4),
-				new ScheduledExecutorScheduler(),
-				new MappedByteBufferPool(),
-				1,
-				4,
-				connFac
-		);
-		connector.setAcceptQueueSize(1000);
-		connector.setReuseAddress(true);
-
-		server.setHandler(handler);
-		server.start();
+		System.out.println("Executed " + ((int) throughput) + " trades/sec in " + ((int) elapsed) + "ms");
 	}
 
 }
