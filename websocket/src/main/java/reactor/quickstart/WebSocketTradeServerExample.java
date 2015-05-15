@@ -49,9 +49,7 @@ public class WebSocketTradeServerExample {
 							map(ev -> ev.getData()).
 							cast(Trade.class).
 							window(1000).
-							flatMap(s ->
-											channel
-													.writeWith(s.
+							flatMap(s -> channel.writeWith( s.
 															reduce(0f, (prev, trade) -> (trade.getPrice() + prev) / 2).
 															map(Object::toString)
 													)
