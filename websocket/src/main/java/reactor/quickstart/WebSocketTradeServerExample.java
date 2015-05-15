@@ -41,10 +41,7 @@ public class WebSocketTradeServerExample {
 			latch.countDown();
 		});
 
-		NetStreams
-				.<String, String>httpServer(spec ->
-								spec.codec(StandardCodecs.STRING_CODEC).listen(3000)
-				).
+		NetStreams.<String, String>httpServer(spec -> spec.codec(StandardCodecs.STRING_CODEC).listen(3000) ).
 				ws("/", channel -> {
 					System.out.println("Connected a websocket client: " + channel.remoteAddress());
 
