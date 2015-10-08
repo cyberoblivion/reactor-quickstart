@@ -2,7 +2,6 @@ package reactor.quickstart;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.Environment;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 
@@ -23,11 +22,10 @@ public class TradeServerExample {
 	private static long           startTime;
 
 	public static void main(String[] args) throws InterruptedException {
-		Environment env = new Environment();
 		final TradeServer server = new TradeServer();
 
 		// Use a Reactor to dispatch events using the default Dispatcher
-		EventBus bus = EventBus.create(env);
+		EventBus bus = EventBus.create();
 
 		String topic = "trade.execute";
 

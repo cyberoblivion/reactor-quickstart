@@ -2,7 +2,6 @@ package reactor.quickstart;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.Environment;
 import reactor.rx.broadcast.Broadcaster;
 
 import java.util.concurrent.CountDownLatch;
@@ -20,13 +19,11 @@ public class StreamTradeServerExample {
 	private static long startTime;
 
 	public static void main(String[] args) throws InterruptedException {
-		Environment.initialize();
-
 		final TradeServer server = new TradeServer();
 		final CountDownLatch latch = new CountDownLatch(totalTrades);
 
 		// Rather than handling Trades as events, each Trade is accessible via Stream.
-		Broadcaster<Trade> trades = Broadcaster.create(Environment.get());
+		Broadcaster<Trade> trades = Broadcaster.create();
 
 		// We compose an action to turn a Trade into an Order by calling server.execute(Trade).
 		trades.map(server::execute)

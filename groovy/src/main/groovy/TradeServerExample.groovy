@@ -3,7 +3,6 @@
  */
 
 import groovy.transform.CompileStatic
-import reactor.Environment
 import reactor.bus.EventBus
 import reactor.bus.Event;
 import reactor.bus.selector.Selectors
@@ -36,11 +35,10 @@ void test() {
 		println "Executed ${(int) throughput} trades/sec in $elapsed ms"
 	}
 
-	def env = new Environment()
 	def server = new TradeServer()
 
 	// Use a Reactor to dispatch events using the RingBuffer Dispatcher
-	def reactor = EventBus.create(env)
+	def reactor = EventBus.create()
 
 	def topic = 'trade.execute'
 

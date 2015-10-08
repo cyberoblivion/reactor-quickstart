@@ -1,6 +1,6 @@
 package reactor.quickstart;
 
-import reactor.Environment;
+import reactor.Processors;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.bus.selector.Selector;
@@ -22,12 +22,10 @@ public class WebSocketTradeServerExample {
 	private static long           startTime;
 
 	public static void main(String[] args) throws Exception {
-		Environment env = Environment.initializeIfEmpty();
-
 		final TradeServer server = new TradeServer();
 
-		// Use a Reactor to dispatch events using the high-speed Dispatcher
-		final EventBus serverReactor = EventBus.create(env);
+		// Use a Reactor to dispatch events using the high-speed Processor
+		final EventBus serverReactor = EventBus.create(Processors.queue());
 
 		// Create a single key and Selector for efficiency
 		final Selector tradeExecute = Selectors.object("trade.execute");
