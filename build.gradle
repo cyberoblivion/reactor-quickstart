@@ -144,6 +144,8 @@ project('websocket') {
 
     // WebSocket support
     compile "io.projectreactor:reactor-net:$reactorVersion"
+    compile "io.projectreactor:reactor-stream:$reactorVersion"
+    compile "io.projectreactor:reactor-codec:$reactorVersion"
     compile "io.netty:netty-all:$nettyVersion"
 
     compile "com.fasterxml.jackson.core:jackson-databind:$jacksonDatabindVersion"

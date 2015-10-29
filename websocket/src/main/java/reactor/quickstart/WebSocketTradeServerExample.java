@@ -1,16 +1,16 @@
 package reactor.quickstart;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import reactor.Processors;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.bus.selector.Selector;
 import reactor.bus.selector.Selectors;
-import reactor.io.codec.StandardCodecs;
 import reactor.io.net.NetStreams;
+import reactor.io.net.preprocessor.CodecPreprocessor;
 import reactor.rx.Streams;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Stephane Maldini
@@ -39,7 +39,7 @@ public class WebSocketTradeServerExample {
 			latch.countDown();
 		});
 
-		NetStreams.<String, String>httpServer(spec -> spec.codec(StandardCodecs.STRING_CODEC).listen(3000)).
+		NetStreams.<String, String>httpServer(spec -> spec.httpProcessor(CodecPreprocessor.string()).listen(3000)).
 				ws("/", channel -> {
 					System.out.println("Connected a websocket client: " + channel.remoteAddress());
 
