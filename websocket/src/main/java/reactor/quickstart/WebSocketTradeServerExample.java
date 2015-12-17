@@ -8,7 +8,7 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.bus.selector.Selector;
 import reactor.bus.selector.Selectors;
-import reactor.io.net.NetStreams;
+import reactor.rx.net.NetStreams;
 import reactor.io.net.preprocessor.CodecPreprocessor;
 import reactor.rx.Streams;
 
