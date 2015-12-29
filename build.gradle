@@ -75,6 +75,7 @@ allprojects {
     mavenLocal()
     maven { url 'http://repo.spring.io/libs-milestone' }
     maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    maven { url 'http://repo.spring.io/libs-snapshot' }
     jcenter()
     mavenCentral()
   }
