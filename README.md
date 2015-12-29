@@ -6,7 +6,7 @@ These examples are just some quick sketches of what you can do with Reactor. The
 
 ### Build
 
-    git clone git@github.com:reactor/reactor-quickstart.git
+    git clone https://github.com/reactor/reactor-quickstart.git
     cd reactor-quickstart
     ./gradlew compileJava
 
